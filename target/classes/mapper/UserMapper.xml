@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.purplaying.UserMapper">
+
+	<sql id="selectFromUser">
+		SELECT USER_NO, USER_ID ,USER_PWD ,USER_NAME, USER_NICKNAME,USER_PHONE,USER_REGDATE ,USER_ACTIVATE,USER_ROLE , USER_PROFILE , USER_POINT
+		FROM tb_user
+	</sql>
+	<!-- signin -->
+	<select id="select" parameterType="String" resultType="UserDto">
+		<include refid="selectFromUser" />
+		where user_id = #{user_id} and user_activate = 1
+	</select>
+	
+	<select id="adminSelect" parameterType="SearchItem" resultType="UserDto">
+		<include refid="selectFromUser" />
+		where user_activate = 1
+		AND user_name LIKE concat('%', #{keyword}, '%')
+		order by user_role desc, user_no
+		limit #{pageSize} OFFSET #{offset}
+	</select>
+	
+	<delete id="deleteAll">
+		truncate table tb_USER restart identity
+	</delete>
+	
+	<insert id="insert" parameterType="UserDto">
+		INSERT INTO tb_user (user_id, user_pwd, user_name, user_phone) VALUES (#{user_id}, #{user_pwd}, #{user_name}, #{user_phone})
+	</insert>
+	
+	<select id="count" resultType="int">
+		select count(*) from tb_user
+	</select>
+	
+	<update id="updateNickName" parameterType="UserDto">
+		UPDATE tb_user
+		SET user_nickname= #{user_nickname}
+		WHERE user_id= #{user_id}
+	</update>
+	
+	<select id="searchResultCnt" parameterType="SearchItem" resultType="int">
+		SELECT COUNT(*) from tb_user  
+		where true 
+		AND user_id like concat('%',#{keyword},'%')
+	</select>
+	
+	<update id="updateRole" parameterType="UserDto">
+		UPDATE tb_user
+		SET user_role= #{user_role}
+		WHERE user_no= #{user_no}
+	</update>
+	
+	<update id="updateUserPwd" parameterType="UserDto">
+		UPDATE tb_user
+		SET user_pwd = #{user_pwd}
+		WHERE user_id= #{user_id}
+	</update>
+
+	<!-- signup -->
+	<insert id="insertUserInfo" parameterType="map">
+		INSERT INTO tb_user (user_id, user_pwd, user_name, user_nickname, user_phone) VALUES (#{user_id}, #{user_pwd}, #{user_name}, #{user_nickname}, #{user_phone})
+	</insert>
+	
+	<insert id="insertUserCheck" parameterType="map">
+		INSERT INTO tb_agreement (user_no,agree_age,agree_terms,agree_inform,agree_inform_third,agree_marketing) VALUES (#{user_no},#{agree_age},#{agree_terms},#{agree_inform},#{agree_inform_third},#{agree_marketing})
+	</insert>
+	
+	<select id="selectUser_NO" parameterType="String" resultType="UserDto">
+		SELECT USER_NO
+		from tb_user
+		where user_id = #{user_id}
+	</select>
+	
+	<update id="updateUserActivation" parameterType="int">
+		UPDATE tb_user SET user_activate = 0 WHERE user_no = #{user_no}
+	</update>
+	
+	<!-- leave -->
+	<select id="selectUserNo_forDelete" parameterType="String" resultType="UserDto">
+		SELECT USER_NO
+		from tb_user
+		where user_id = #{user_id}
+	</select>
+	
+	<insert id="insertLeaveReason" parameterType="map">
+		INSERT INTO tb_leave (USER_NO,LEAVE_CATEGORY,LEAVE_REASON) VALUES (#{user_no},#{leave_category},#{leave_reason})
+	</insert>
+	
+	<select id="findUserData" parameterType="UserDto" resultType="int">
+		select COUNT(*) from TB_USER where user_name = #{user_name} and user_phone = #{user_phone};
+	</select>
+	<select id="findUserId" parameterType="UserDto" resultType="String">
+		select user_id from TB_USER where user_name = #{user_name} and user_phone = #{user_phone};
+	</select>
+	
+	<select id="getPaymentUserInfo" parameterType="String" resultType="UserDto">
+		<include refid="selectFromUser"  />
+		where user_id = #{user_id} and user_activate = 1
+		limit 1
+	</select>
+	
+	<update id="modifyProfile" parameterType="map">
+		UPDATE tb_user
+		SET user_profile= #{user_profile}
+		WHERE user_no= #{user_no}
+	</update>
+	
+	<!--검색 기능  -->	
+	
+	<!-- 유저카운트 -->
+	<select id="searchuser" parameterType="SearchItem2" resultType="int">
+		select count(*) 
+		FROM tb_user
+		WHERE TRUE
+		AND user_nickname LIKE concat('%', #{keyword}, '%')	
+		OR user_id LIKE concat('%', #{keyword}, '%')
+	</select>
+	
+	<!-- 유저검색페이지 -->
+	<select id="searchUserPage" parameterType="SearchItem2" resultType="UserDto">
+		<include refid="selectFromUser"/>
+		WHERE TRUE
+		AND user_nickname LIKE concat('%', #{keyword}, '%')
+		OR user_id LIKE concat('%', #{keyword}, '%')
+		limit 6 offset #{offset}
+  	</select>
+  	
+  	<update id="updateUserPhone" parameterType="UserDto">
+		UPDATE tb_user
+		SET user_phone= #{user_phone}
+		WHERE user_no= #{user_no}
+	</update>
+	
+	<select id="getUserList" parameterType="String" resultType="UserDto">
+		<include refid="selectFromUser" />
+		WHERE user_id = #{user_id}		
+	</select>	
+	
+	<update id="insertPoint" parameterType="UserDto">
+		UPDATE tb_user 
+		set user_point= #{user_point}
+		WHERE user_id = #{user_id}	
+	</update>
+	
+	<!-- 결제에 따른 유저 포인트 갱신 -->
+	<update id="updatePoint" parameterType="int">
+		UPDATE tb_user
+		set user_point = #{user_point}
+		where user_no = #{user_no}
+	</update>
+</mapper>
